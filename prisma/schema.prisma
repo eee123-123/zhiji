@@ -13,6 +13,9 @@ model User {
 
   tarotReadings TarotReading[]
   dailySigns    DailySign[]
+  dreamEntries  DreamEntry[]
+  constitution      Constitution?
+  wellnessCheckins  WellnessCheckin[]
 }
 
 model TarotReading {
@@ -43,4 +46,59 @@ model DailySign {
   createdAt DateTime @default(now())
 
   @@unique([userId, date])
+}
+
+// ========== 解梦模块 ==========
+model DreamEntry {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+
+  content     String   // 梦境描述文本
+  tags        DreamTag[]
+  emotion     String?  // 情绪标记：fear/anxiety/joy/sadness/confusion/calm/absurd
+  clarity     String?  // 清晰度：clear/partial/vague
+  isRecurring Boolean  @default(false) // 是否反复出现
+  traditional String?  // AI解析：传统寓意
+  deeper      String?  // AI解析：深层映射
+  questions   String?  // AI解析：值得自问
+  feedback    String?  // 用户反馈：inspired/partial/none
+  relatedNote String?  // 用户关联输入
+
+  createdAt   DateTime @default(now())
+}
+
+model DreamTag {
+  id      String     @id @default(cuid())
+  name    String
+  entryId String
+  entry   DreamEntry @relation(fields: [entryId], references: [id])
+
+  @@index([name])
+}
+
+// ========== 养元模块 ==========
+model Constitution {
+  id        String   @id @default(cuid())
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id])
+
+  type      String   // 9种体质类型：pinghe/qixu/yangxu/yinxu/tanshi/shire/xueyu/qiyu/tebing
+  scores    String   // JSON序列化的各维度得分
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model WellnessCheckin {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  date      String   // YYYY-MM-DD
+  type      String   // diet | exercise | sleep | custom
+  content   String   // 打卡内容
+  feedback  String?  // 体感反馈：better/normal/none
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date, type])
 }
