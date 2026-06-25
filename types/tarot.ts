@@ -16,6 +16,15 @@ export type SpreadType = "single" | "three" | "celtic";
 
 export type TarotRole = "yuejian" | "yousuo" | "qingwu" | "huohu";
 
+export type TarotTopic = "love" | "career" | "decision" | "general";
+
+export const TOPIC_LABELS: Record<TarotTopic, string> = {
+  love: "感情关系",
+  career: "事业发展",
+  decision: "人生抉择",
+  general: "今日指引",
+};
+
 export interface TarotSessionData {
   role: TarotRole;
   topic?: string;

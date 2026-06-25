@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CardFlip } from "./card-flip";
 import { DrawnCard } from "@/types/tarot";
 
@@ -28,10 +28,12 @@ export function CardDisplay({
     }
   }, [drawnCard, autoFlip, autoFlipDelay]);
 
-  // 重置状态（当新牌到来时）
-  useEffect(() => {
+  // 重置状态（当新牌到来时）— render-time 检测，避免 effect 中同步 setState
+  const prevCardIdRef = useRef<number | undefined>(drawnCard?.card.id);
+  if (drawnCard?.card.id !== prevCardIdRef.current) {
+    prevCardIdRef.current = drawnCard?.card.id;
     setFlipped(false);
-  }, [drawnCard?.card.id]);
+  }
 
   if (!drawnCard) {
     return (

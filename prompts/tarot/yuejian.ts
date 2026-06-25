@@ -1,4 +1,4 @@
-import { TAROT_BASE_RULES, PromptContext } from "./base";
+import { getBaseRules, PromptContext } from "./base";
 
 /**
  * 月见 - 温暖姐姐型塔罗师
@@ -30,5 +30,5 @@ ${context.cards}
 ${context.topic ? `问题主题：${context.topic}` : "（用户未指定具体问题，请给出当下通用指引）"}
 ${context.description ? `补充描述：${context.description}` : ""}
 
-${TAROT_BASE_RULES}`;
+${getBaseRules(context.spreadType)}`;
 }

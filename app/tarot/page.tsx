@@ -1,15 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { RoleSelector } from "@/components/tarot/role-selector";
+import { TarotRole } from "@/types/tarot";
 
 export default function TarotPage() {
   const router = useRouter();
+  const [selectedRole, setSelectedRole] = useState<TarotRole>("yuejian");
 
   const handleQuickDraw = () => {
     const sessionId =
       Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    router.push(`/tarot/session/${sessionId}?mode=quick`);
+    router.push(`/tarot/session/${sessionId}?mode=quick&role=${selectedRole}`);
   };
 
   return (
@@ -19,6 +24,11 @@ export default function TarotPage() {
       <p className="text-gray-400 text-center mb-10 max-w-md leading-relaxed">
         无需思考，翻一张牌，看看宇宙想对你说什么
       </p>
+
+      {/* 角色选择 */}
+      <div className="mb-10">
+        <RoleSelector selectedRole={selectedRole} onSelect={setSelectedRole} />
+      </div>
 
       {/* 一键抽牌大按钮 */}
       <Button
@@ -32,12 +42,20 @@ export default function TarotPage() {
       <p className="text-gray-500 text-sm mt-5">30秒获得今日灵感</p>
 
       {/* 完整流程入口 */}
-      <div className="mt-20 px-4 py-3 rounded-lg border border-gray-700/50 text-gray-600 text-sm text-center">
-        完整问牌流程（选主题 → 描述困惑 → 选牌阵）
-        <span className="ml-2 text-xs bg-gray-700/50 text-gray-500 px-2 py-0.5 rounded">
-          开发中
-        </span>
-      </div>
+      <Link
+        href="/tarot/full"
+        className="mt-20 px-6 py-3 rounded-lg border border-zhiji-gold/25 text-zhiji-gold/80 text-sm text-center hover:bg-zhiji-gold/10 hover:border-zhiji-gold/40 transition-all duration-200 block"
+      >
+        ✦ 完整问牌流程（选主题 → 描述困惑 → 选牌阵）
+      </Link>
+
+      {/* 历史记录入口 */}
+      <Link
+        href="/tarot/history"
+        className="mt-4 px-6 py-2.5 rounded-lg border border-zhiji-gold/25 text-zhiji-gold/80 text-sm hover:bg-zhiji-gold/10 hover:border-zhiji-gold/40 transition-all duration-200"
+      >
+        📜 问牌记录
+      </Link>
     </div>
   );
 }

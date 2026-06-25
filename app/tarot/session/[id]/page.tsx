@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CardDisplay } from "@/components/tarot/card-display";
 import { CardSpread } from "@/components/tarot/card-spread";
 import { StreamReading } from "@/components/tarot/stream-reading";
 import { useStream } from "@/hooks/use-stream";
 import { TAROT_CARDS } from "@/lib/tarot/cards";
-import { TarotCard, DrawnCard } from "@/types/tarot";
+import { TarotCard, DrawnCard, TarotRole } from "@/types/tarot";
 import { Button } from "@/components/ui/button";
 
 type SessionState = "choosing" | "revealing" | "reading" | "done";
@@ -25,10 +25,19 @@ function shuffleMajorArcana(): TarotCard[] {
 
 export default function TarotSessionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = (searchParams.get("role") || "yuejian") as TarotRole;
+
+  const roleNameMap: Record<TarotRole, string> = {
+    yuejian: "月见",
+    yousuo: "幽锁",
+    qingwu: "青梧",
+    huohu: "火琥",
+  };
 
   const [state, setState] = useState<SessionState>("choosing");
   const [drawnCard, setDrawnCard] = useState<DrawnCard | null>(null);
-  const { text, loading, error, startStream, cancel } = useStream();
+  const { text, loading, error, startStream, cancel, narrativeHint } = useStream();
 
   // 大阿尔卡那22张牌随机排列（用户只看到牌背）
   const candidates = useMemo(() => shuffleMajorArcana(), []);
@@ -53,17 +62,19 @@ export default function TarotSessionPage() {
     setState("reading");
     startStream("/api/tarot/interpret", {
       cards: [drawnCard],
-      role: "yuejian",
+      role: role,
       spreadType: "single",
     });
-  }, [drawnCard, startStream]);
+  }, [drawnCard, startStream, role]);
 
-  // 监听流式加载完成 → 标记为 done
-  useEffect(() => {
+  // 监听流式加载完成 → 标记为 done（render-time 状态检测，避免 effect 中同步 setState）
+  const [prevLoading, setPrevLoading] = useState(loading);
+  if (prevLoading !== loading) {
+    setPrevLoading(loading);
     if (state === "reading" && !loading && text.length > 0) {
       setState("done");
     }
-  }, [state, loading, text]);
+  }
 
   // 再来一次
   const handleRetry = useCallback(() => {
@@ -81,7 +92,7 @@ export default function TarotSessionPage() {
         <h2 className="text-xl text-zhiji-gold mb-1">
           {state === "choosing" ? "选择你的牌" : "一键抽牌"}
         </h2>
-        <p className="text-gray-500 text-sm">月见为你解读</p>
+        <p className="text-gray-500 text-sm">{roleNameMap[role]}为你解读</p>
       </div>
 
       {/* 选牌状态 */}
@@ -125,6 +136,13 @@ export default function TarotSessionPage() {
       {(state === "reading" || state === "done") && (
         <div className="w-full max-w-lg animate-fadeIn">
           <StreamReading text={text} loading={loading} error={error} />
+        </div>
+      )}
+
+      {/* 叙事呼应提示 */}
+      {narrativeHint && state === "done" && (
+        <div className="mt-4 px-4 py-3 rounded-lg border border-zhiji-gold/20 bg-zhiji-gold/5 text-sm text-zhiji-gold/80 text-center animate-fadeIn">
+          ✦ {narrativeHint}
         </div>
       )}
 

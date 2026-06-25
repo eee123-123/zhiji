@@ -9,7 +9,7 @@ interface CardSpreadProps {
   disabled?: boolean;
 }
 
-export function CardSpread({ cards, onSelect, disabled }: CardSpreadProps) {
+export function CardSpread({ onSelect, disabled }: CardSpreadProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const handleSelect = (index: number) => {
@@ -29,7 +29,7 @@ export function CardSpread({ cards, onSelect, disabled }: CardSpreadProps) {
           key={rowIdx}
           className="flex justify-center gap-2"
         >
-          {Array.from({ length: count }).map((_, colIdx) => {
+          {Array.from({ length: count }).map((_item, _colIdx) => {
             const idx = cardIndex++;
             const isSelected = selectedIndex === idx;
             const isOther = selectedIndex !== null && !isSelected;

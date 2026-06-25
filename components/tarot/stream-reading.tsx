@@ -80,5 +80,9 @@ function getSectionIcon(title: string): string {
   if (title.includes("牌面意象")) return "🎴";
   if (title.includes("解读")) return "✦";
   if (title.includes("行动建议")) return "💡";
+  if (title.includes("过去")) return "⏪";
+  if (title.includes("现在")) return "✦";
+  if (title.includes("未来")) return "⏩";
+  if (title.includes("综合建议")) return "💡";
   return "·";
 }

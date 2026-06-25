@@ -6,6 +6,7 @@ export function useStream() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [narrativeHint, setNarrativeHint] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const startStream = useCallback(async (url: string, body: object) => {
@@ -16,6 +17,7 @@ export function useStream() {
     setLoading(true);
     setText("");
     setError(null);
+    setNarrativeHint(null);
 
     try {
       const res = await fetch(url, {
@@ -27,6 +29,12 @@ export function useStream() {
 
       if (!res.ok) {
         throw new Error(`请求失败: ${res.status}`);
+      }
+
+      // 提取叙事呼应提示
+      const hint = res.headers.get("X-Narrative-Hint");
+      if (hint) {
+        setNarrativeHint(decodeURIComponent(hint));
       }
 
       const reader = res.body!.getReader();
@@ -59,5 +67,5 @@ export function useStream() {
     };
   }, []);
 
-  return { text, loading, error, startStream, cancel };
+  return { text, loading, error, startStream, cancel, narrativeHint };
 }
