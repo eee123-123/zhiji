@@ -12,7 +12,7 @@ export async function streamChat(
     const client = createAIClient();
     response = await client.chat.completions.create(
       {
-        model: params.model || "qwen-plus",
+        model: params.model || "qwen3.6-flash",
         stream: true,
         messages: [
           { role: "system", content: params.systemPrompt },
@@ -32,7 +32,7 @@ export async function streamChat(
     const client = createAIClient();
     response = await client.chat.completions.create(
       {
-        model: params.model || "qwen-plus",
+        model: params.model || "qwen3.6-flash",
         stream: true,
         messages: [
           { role: "system", content: params.systemPrompt },

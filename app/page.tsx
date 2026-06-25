@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { QuickDrawButton } from "@/components/tarot/quick-draw-button";
 
 const modules = [
   { href: "/tarot", icon: "🎴", title: "问牌", desc: "塔罗指引，映照你的内心" },
@@ -25,12 +26,9 @@ export default function HomePage() {
 
       {/* 一键抽牌 CTA */}
       <section className="mb-14 md:mb-18 text-center">
-        <Link
-          href="/tarot"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-zhiji-gold to-zhiji-gold-light px-8 py-4 text-lg font-semibold text-zhiji-dark shadow-lg shadow-zhiji-gold/20 transition-all duration-300 hover:scale-105 hover:shadow-zhiji-gold/40 active:scale-95"
-        >
-          ✦ 一键抽牌
-        </Link>
+        <QuickDrawButton
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-zhiji-gold to-zhiji-gold-light px-8 py-4 text-lg font-semibold text-zhiji-dark shadow-lg shadow-zhiji-gold/20 transition-all duration-300 hover:scale-105 hover:shadow-zhiji-gold/40 active:scale-95 cursor-pointer"
+        />
         <p className="text-white/40 text-sm mt-3">30秒获得今日灵感</p>
       </section>
 

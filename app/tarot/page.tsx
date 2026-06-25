@@ -9,7 +9,7 @@ export default function TarotPage() {
   const handleQuickDraw = () => {
     const sessionId =
       Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    router.push(`/tarot/session/${sessionId}`);
+    router.push(`/tarot/session/${sessionId}?mode=quick`);
   };
 
   return (

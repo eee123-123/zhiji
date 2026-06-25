@@ -1,28 +1,51 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CardDisplay } from "@/components/tarot/card-display";
+import { CardSpread } from "@/components/tarot/card-spread";
 import { StreamReading } from "@/components/tarot/stream-reading";
 import { useStream } from "@/hooks/use-stream";
-import { drawCards } from "@/lib/tarot/draw";
-import { DrawnCard } from "@/types/tarot";
+import { TAROT_CARDS } from "@/lib/tarot/cards";
+import { TarotCard, DrawnCard } from "@/types/tarot";
 import { Button } from "@/components/ui/button";
 
-type SessionState = "idle" | "drawing" | "reading" | "done";
+type SessionState = "choosing" | "revealing" | "reading" | "done";
+
+/** 获取大阿尔卡那22张牌并随机打乱顺序 */
+function shuffleMajorArcana(): TarotCard[] {
+  const majorCards = TAROT_CARDS.filter((card) => card.arcana === "major");
+  // Fisher-Yates 洗牌
+  for (let i = majorCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [majorCards[i], majorCards[j]] = [majorCards[j], majorCards[i]];
+  }
+  return majorCards;
+}
 
 export default function TarotSessionPage() {
   const router = useRouter();
-  const [state, setState] = useState<SessionState>("idle");
+
+  const [state, setState] = useState<SessionState>("choosing");
   const [drawnCard, setDrawnCard] = useState<DrawnCard | null>(null);
   const { text, loading, error, startStream, cancel } = useStream();
 
-  // 开始抽牌
-  const handleDraw = useCallback(() => {
-    const cards = drawCards(1);
-    setDrawnCard(cards[0]);
-    setState("drawing");
-  }, []);
+  // 大阿尔卡那22张牌随机排列（用户只看到牌背）
+  const candidates = useMemo(() => shuffleMajorArcana(), []);
+
+  // 用户选牌
+  const handleCardSelect = useCallback((index: number) => {
+    const selectedCard = candidates[index];
+    const drawn: DrawnCard = {
+      card: selectedCard,
+      isReversed: Math.random() < 0.5,
+    };
+    setDrawnCard(drawn);
+    // 短暂延迟后进入翻牌状态，让选中动画先完成
+    setTimeout(() => {
+      setState("revealing");
+    }, 600);
+  }, [candidates]);
 
   // 翻牌完成后开始 AI 解读
   const handleFlipComplete = useCallback(() => {
@@ -46,43 +69,48 @@ export default function TarotSessionPage() {
   const handleRetry = useCallback(() => {
     cancel();
     setDrawnCard(null);
-    setState("idle");
-  }, [cancel]);
+    setState("choosing");
+    // 刷新页面以获取新的候选牌
+    router.refresh();
+  }, [cancel, router]);
 
   return (
     <div className="flex flex-col items-center px-4 py-8 min-h-screen">
       {/* 标题 */}
-      <div className="mb-8 text-center">
-        <h2 className="text-xl text-zhiji-gold mb-1">一键抽牌</h2>
+      <div className="mb-6 text-center">
+        <h2 className="text-xl text-zhiji-gold mb-1">
+          {state === "choosing" ? "选择你的牌" : "一键抽牌"}
+        </h2>
         <p className="text-gray-500 text-sm">月见为你解读</p>
       </div>
 
-      {/* 牌面区域 */}
-      <div className="mb-8">
-        {state === "idle" ? (
-          <div className="flex flex-col items-center gap-6">
-            <div className="w-44 h-64 rounded-xl border-2 border-dashed border-zhiji-gold/30 flex items-center justify-center">
-              <span className="text-zhiji-gold/40 text-2xl">✦</span>
-            </div>
-            <Button
-              onClick={handleDraw}
-              className="bg-zhiji-gold hover:bg-zhiji-gold-light text-zhiji-dark font-bold px-8 py-3 rounded-full cursor-pointer"
-            >
-              翻开命运之牌
-            </Button>
-          </div>
-        ) : (
+      {/* 选牌状态 */}
+      {state === "choosing" && (
+        <div className="w-full max-w-md flex flex-col items-center animate-fadeIn">
+          <p className="text-gray-400 text-sm mb-2 text-center">
+            静下心来，选择一张你感觉被吸引的牌
+          </p>
+          <CardSpread
+            cards={candidates}
+            onSelect={handleCardSelect}
+          />
+        </div>
+      )}
+
+      {/* 翻牌动画 */}
+      {(state === "revealing" || state === "reading" || state === "done") && drawnCard && (
+        <div className="mb-8 animate-fadeIn">
           <CardDisplay
             drawnCard={drawnCard}
             autoFlip
             autoFlipDelay={800}
             onFlipComplete={handleFlipComplete}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 牌名展示 */}
-      {drawnCard && state !== "idle" && (
+      {drawnCard && state !== "choosing" && (
         <div className="mb-6 text-center animate-fadeIn">
           <p className="text-zhiji-gold font-medium text-lg">
             {drawnCard.card.name}
@@ -124,7 +152,7 @@ export default function TarotSessionPage() {
       {error && state !== "done" && (
         <div className="mt-4 text-center animate-fadeIn">
           <Button
-            onClick={handleDraw}
+            onClick={handleRetry}
             variant="outline"
             className="border-red-400/40 text-red-400 hover:bg-red-400/10 cursor-pointer"
           >
