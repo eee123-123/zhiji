@@ -1,0 +1,96 @@
+import { TarotCard } from "@/types/tarot";
+
+/**
+ * 韦特塔罗牌完整78张牌数据
+ */
+export const TAROT_CARDS: TarotCard[] = [
+  // ========== 大阿尔卡那 (Major Arcana) 22张 ==========
+  { id: 0, name: "愚者", nameEn: "The Fool", arcana: "major" },
+  { id: 1, name: "魔术师", nameEn: "The Magician", arcana: "major" },
+  { id: 2, name: "女祭司", nameEn: "The High Priestess", arcana: "major" },
+  { id: 3, name: "女皇", nameEn: "The Empress", arcana: "major" },
+  { id: 4, name: "皇帝", nameEn: "The Emperor", arcana: "major" },
+  { id: 5, name: "教皇", nameEn: "The Hierophant", arcana: "major" },
+  { id: 6, name: "恋人", nameEn: "The Lovers", arcana: "major" },
+  { id: 7, name: "战车", nameEn: "The Chariot", arcana: "major" },
+  { id: 8, name: "力量", nameEn: "Strength", arcana: "major" },
+  { id: 9, name: "隐者", nameEn: "The Hermit", arcana: "major" },
+  { id: 10, name: "命运之轮", nameEn: "Wheel of Fortune", arcana: "major" },
+  { id: 11, name: "正义", nameEn: "Justice", arcana: "major" },
+  { id: 12, name: "倒吊人", nameEn: "The Hanged Man", arcana: "major" },
+  { id: 13, name: "死神", nameEn: "Death", arcana: "major" },
+  { id: 14, name: "节制", nameEn: "Temperance", arcana: "major" },
+  { id: 15, name: "恶魔", nameEn: "The Devil", arcana: "major" },
+  { id: 16, name: "塔", nameEn: "The Tower", arcana: "major" },
+  { id: 17, name: "星星", nameEn: "The Star", arcana: "major" },
+  { id: 18, name: "月亮", nameEn: "The Moon", arcana: "major" },
+  { id: 19, name: "太阳", nameEn: "The Sun", arcana: "major" },
+  { id: 20, name: "审判", nameEn: "Judgement", arcana: "major" },
+  { id: 21, name: "世界", nameEn: "The World", arcana: "major" },
+
+  // ========== 小阿尔卡那 (Minor Arcana) 56张 ==========
+
+  // --- 权杖 (Wands) 14张 ---
+  { id: 22, name: "权杖一", nameEn: "Ace of Wands", arcana: "minor", suit: "wands", number: 1 },
+  { id: 23, name: "权杖二", nameEn: "Two of Wands", arcana: "minor", suit: "wands", number: 2 },
+  { id: 24, name: "权杖三", nameEn: "Three of Wands", arcana: "minor", suit: "wands", number: 3 },
+  { id: 25, name: "权杖四", nameEn: "Four of Wands", arcana: "minor", suit: "wands", number: 4 },
+  { id: 26, name: "权杖五", nameEn: "Five of Wands", arcana: "minor", suit: "wands", number: 5 },
+  { id: 27, name: "权杖六", nameEn: "Six of Wands", arcana: "minor", suit: "wands", number: 6 },
+  { id: 28, name: "权杖七", nameEn: "Seven of Wands", arcana: "minor", suit: "wands", number: 7 },
+  { id: 29, name: "权杖八", nameEn: "Eight of Wands", arcana: "minor", suit: "wands", number: 8 },
+  { id: 30, name: "权杖九", nameEn: "Nine of Wands", arcana: "minor", suit: "wands", number: 9 },
+  { id: 31, name: "权杖十", nameEn: "Ten of Wands", arcana: "minor", suit: "wands", number: 10 },
+  { id: 32, name: "权杖侍从", nameEn: "Page of Wands", arcana: "minor", suit: "wands", number: 11 },
+  { id: 33, name: "权杖骑士", nameEn: "Knight of Wands", arcana: "minor", suit: "wands", number: 12 },
+  { id: 34, name: "权杖王后", nameEn: "Queen of Wands", arcana: "minor", suit: "wands", number: 13 },
+  { id: 35, name: "权杖国王", nameEn: "King of Wands", arcana: "minor", suit: "wands", number: 14 },
+
+  // --- 圣杯 (Cups) 14张 ---
+  { id: 36, name: "圣杯一", nameEn: "Ace of Cups", arcana: "minor", suit: "cups", number: 1 },
+  { id: 37, name: "圣杯二", nameEn: "Two of Cups", arcana: "minor", suit: "cups", number: 2 },
+  { id: 38, name: "圣杯三", nameEn: "Three of Cups", arcana: "minor", suit: "cups", number: 3 },
+  { id: 39, name: "圣杯四", nameEn: "Four of Cups", arcana: "minor", suit: "cups", number: 4 },
+  { id: 40, name: "圣杯五", nameEn: "Five of Cups", arcana: "minor", suit: "cups", number: 5 },
+  { id: 41, name: "圣杯六", nameEn: "Six of Cups", arcana: "minor", suit: "cups", number: 6 },
+  { id: 42, name: "圣杯七", nameEn: "Seven of Cups", arcana: "minor", suit: "cups", number: 7 },
+  { id: 43, name: "圣杯八", nameEn: "Eight of Cups", arcana: "minor", suit: "cups", number: 8 },
+  { id: 44, name: "圣杯九", nameEn: "Nine of Cups", arcana: "minor", suit: "cups", number: 9 },
+  { id: 45, name: "圣杯十", nameEn: "Ten of Cups", arcana: "minor", suit: "cups", number: 10 },
+  { id: 46, name: "圣杯侍从", nameEn: "Page of Cups", arcana: "minor", suit: "cups", number: 11 },
+  { id: 47, name: "圣杯骑士", nameEn: "Knight of Cups", arcana: "minor", suit: "cups", number: 12 },
+  { id: 48, name: "圣杯王后", nameEn: "Queen of Cups", arcana: "minor", suit: "cups", number: 13 },
+  { id: 49, name: "圣杯国王", nameEn: "King of Cups", arcana: "minor", suit: "cups", number: 14 },
+
+  // --- 宝剑 (Swords) 14张 ---
+  { id: 50, name: "宝剑一", nameEn: "Ace of Swords", arcana: "minor", suit: "swords", number: 1 },
+  { id: 51, name: "宝剑二", nameEn: "Two of Swords", arcana: "minor", suit: "swords", number: 2 },
+  { id: 52, name: "宝剑三", nameEn: "Three of Swords", arcana: "minor", suit: "swords", number: 3 },
+  { id: 53, name: "宝剑四", nameEn: "Four of Swords", arcana: "minor", suit: "swords", number: 4 },
+  { id: 54, name: "宝剑五", nameEn: "Five of Swords", arcana: "minor", suit: "swords", number: 5 },
+  { id: 55, name: "宝剑六", nameEn: "Six of Swords", arcana: "minor", suit: "swords", number: 6 },
+  { id: 56, name: "宝剑七", nameEn: "Seven of Swords", arcana: "minor", suit: "swords", number: 7 },
+  { id: 57, name: "宝剑八", nameEn: "Eight of Swords", arcana: "minor", suit: "swords", number: 8 },
+  { id: 58, name: "宝剑九", nameEn: "Nine of Swords", arcana: "minor", suit: "swords", number: 9 },
+  { id: 59, name: "宝剑十", nameEn: "Ten of Swords", arcana: "minor", suit: "swords", number: 10 },
+  { id: 60, name: "宝剑侍从", nameEn: "Page of Swords", arcana: "minor", suit: "swords", number: 11 },
+  { id: 61, name: "宝剑骑士", nameEn: "Knight of Swords", arcana: "minor", suit: "swords", number: 12 },
+  { id: 62, name: "宝剑王后", nameEn: "Queen of Swords", arcana: "minor", suit: "swords", number: 13 },
+  { id: 63, name: "宝剑国王", nameEn: "King of Swords", arcana: "minor", suit: "swords", number: 14 },
+
+  // --- 星币 (Pentacles) 14张 ---
+  { id: 64, name: "星币一", nameEn: "Ace of Pentacles", arcana: "minor", suit: "pentacles", number: 1 },
+  { id: 65, name: "星币二", nameEn: "Two of Pentacles", arcana: "minor", suit: "pentacles", number: 2 },
+  { id: 66, name: "星币三", nameEn: "Three of Pentacles", arcana: "minor", suit: "pentacles", number: 3 },
+  { id: 67, name: "星币四", nameEn: "Four of Pentacles", arcana: "minor", suit: "pentacles", number: 4 },
+  { id: 68, name: "星币五", nameEn: "Five of Pentacles", arcana: "minor", suit: "pentacles", number: 5 },
+  { id: 69, name: "星币六", nameEn: "Six of Pentacles", arcana: "minor", suit: "pentacles", number: 6 },
+  { id: 70, name: "星币七", nameEn: "Seven of Pentacles", arcana: "minor", suit: "pentacles", number: 7 },
+  { id: 71, name: "星币八", nameEn: "Eight of Pentacles", arcana: "minor", suit: "pentacles", number: 8 },
+  { id: 72, name: "星币九", nameEn: "Nine of Pentacles", arcana: "minor", suit: "pentacles", number: 9 },
+  { id: 73, name: "星币十", nameEn: "Ten of Pentacles", arcana: "minor", suit: "pentacles", number: 10 },
+  { id: 74, name: "星币侍从", nameEn: "Page of Pentacles", arcana: "minor", suit: "pentacles", number: 11 },
+  { id: 75, name: "星币骑士", nameEn: "Knight of Pentacles", arcana: "minor", suit: "pentacles", number: 12 },
+  { id: 76, name: "星币王后", nameEn: "Queen of Pentacles", arcana: "minor", suit: "pentacles", number: 13 },
+  { id: 77, name: "星币国王", nameEn: "King of Pentacles", arcana: "minor", suit: "pentacles", number: 14 },
+];

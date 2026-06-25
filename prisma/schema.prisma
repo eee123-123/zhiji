@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  createdAt DateTime @default(now())
+
+  tarotReadings TarotReading[]
+  dailySigns    DailySign[]
+}
+
+model TarotReading {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+
+  role        String   // yuejian | yousuo | qingwu | huohu
+  topic       String?  // 用户问题主题
+  description String?  // 用户补充描述
+  spreadType  String   // single | three | celtic
+  cards       String   // JSON序列化字符串（SQLite无原生Json）
+  reading     String   // AI生成的完整解读文本
+  narrative   String?  // 连续性叙事引用
+
+  createdAt   DateTime @default(now())
+}
+
+model DailySign {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  date      String   // YYYY-MM-DD
+  signText  String   // 今日一签文案
+  insight   String?  // 洞察型奖励内容
+  streak    Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
