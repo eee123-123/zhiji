@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { TarotRole } from "@/types/tarot";
 
 interface RoleSelectorProps {
@@ -18,6 +20,8 @@ interface RoleOption {
   bgClass: string;
   tagBgClass: string;
   tagTextClass: string;
+  avatar: string;
+  fallbackColor: string;
 }
 
 const ROLE_OPTIONS: RoleOption[] = [
@@ -32,6 +36,8 @@ const ROLE_OPTIONS: RoleOption[] = [
     bgClass: "bg-zhiji-gold/10",
     tagBgClass: "bg-zhiji-gold/15",
     tagTextClass: "text-zhiji-gold/90",
+    avatar: "/roles/yuejian.png",
+    fallbackColor: "bg-purple-600",
   },
   {
     id: "yousuo",
@@ -44,6 +50,8 @@ const ROLE_OPTIONS: RoleOption[] = [
     bgClass: "bg-indigo-500/10",
     tagBgClass: "bg-indigo-500/15",
     tagTextClass: "text-indigo-300/90",
+    avatar: "/roles/yousuo.png",
+    fallbackColor: "bg-indigo-600",
   },
   {
     id: "qingwu",
@@ -56,6 +64,8 @@ const ROLE_OPTIONS: RoleOption[] = [
     bgClass: "bg-emerald-500/10",
     tagBgClass: "bg-emerald-500/15",
     tagTextClass: "text-emerald-300/90",
+    avatar: "/roles/qingwu.png",
+    fallbackColor: "bg-emerald-600",
   },
   {
     id: "huohu",
@@ -68,8 +78,37 @@ const ROLE_OPTIONS: RoleOption[] = [
     bgClass: "bg-amber-500/10",
     tagBgClass: "bg-amber-500/15",
     tagTextClass: "text-amber-300/90",
+    avatar: "/roles/huohu.png",
+    fallbackColor: "bg-amber-600",
   },
 ];
+
+function RoleAvatar({ role }: { role: RoleOption }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (imgError) {
+    return (
+      <div
+        className={`w-16 h-16 rounded-full ${role.fallbackColor} flex items-center justify-center text-white font-bold text-lg shrink-0`}
+      >
+        {role.name[0]}
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 ring-2 ring-white/10">
+      <Image
+        src={role.avatar}
+        alt={role.name}
+        width={80}
+        height={80}
+        className="w-full h-full object-cover"
+        onError={() => setImgError(true)}
+      />
+    </div>
+  );
+}
 
 export function RoleSelector({ selectedRole, onSelect }: RoleSelectorProps) {
   return (
@@ -83,7 +122,7 @@ export function RoleSelector({ selectedRole, onSelect }: RoleSelectorProps) {
               key={role.id}
               onClick={() => onSelect(role.id)}
               className={`
-                relative p-4 pb-3.5 rounded-xl border text-left transition-all duration-300 cursor-pointer flex flex-col gap-2
+                relative p-4 pb-3.5 rounded-xl border text-left transition-all duration-300 cursor-pointer flex flex-col items-center gap-2
                 ${
                   isSelected
                     ? `${role.borderClass} ${role.bgClass} scale-[1.03] shadow-lg`
@@ -91,6 +130,9 @@ export function RoleSelector({ selectedRole, onSelect }: RoleSelectorProps) {
                 }
               `}
             >
+              {/* 角色头像 */}
+              <RoleAvatar role={role} />
+
               {/* 角色名 */}
               <p
                 className={`font-bold text-base ${
@@ -101,12 +143,12 @@ export function RoleSelector({ selectedRole, onSelect }: RoleSelectorProps) {
               </p>
 
               {/* 一句话定位 */}
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-400 leading-relaxed text-center">
                 {role.description}
               </p>
 
               {/* 风格标签 */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap justify-center gap-1.5">
                 {role.tags.map((tag) => (
                   <span
                     key={tag}

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useStream } from "@/hooks/use-stream";
+import { useEffect, useState, useCallback } from "react";
 import { WellnessCard } from "@/components/wellness/wellness-card";
 import Link from "next/link";
 
@@ -12,9 +11,17 @@ interface SolarTermData {
   description: string;
 }
 
+/** 获取今日缓存 key */
+function getTodayCacheKey(): string {
+  const today = new Date().toISOString().slice(0, 10);
+  return `wellness-card-${today}`;
+}
+
 export default function WellnessPage() {
   const [solarTerm, setSolarTerm] = useState<SolarTermData | null>(null);
-  const { text, loading, error, startStream } = useStream();
+  const [cardText, setCardText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 加载节气数据
   useEffect(() => {
@@ -24,10 +31,69 @@ export default function WellnessPage() {
       .catch(() => {});
   }, []);
 
-  // 加载养生卡片（使用 POST 复用 useStream）
+  // 加载养生卡片（优先读缓存，无缓存才调 AI）
+  const loadCard = useCallback(async (forceRefresh = false) => {
+    const cacheKey = getTodayCacheKey();
+
+    // 非强制刷新时，先读 localStorage 缓存
+    if (!forceRefresh) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          setCardText(cached);
+          return;
+        }
+      } catch {}
+    }
+
+    // 无缓存或强制刷新：调用 AI 接口
+    setLoading(true);
+    setCardText("");
+    setError(null);
+
+    const abortController = new AbortController();
+    try {
+      const res = await fetch("/api/wellness/card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh: forceRefresh }),
+        signal: abortController.signal,
+      });
+
+      if (!res.ok) {
+        throw new Error(`请求失败: ${res.status}`);
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setCardText(fullText);
+      }
+
+      // 流式完成后存入 localStorage
+      if (fullText) {
+        try {
+          localStorage.setItem(cacheKey, fullText);
+        } catch {}
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      const message = err instanceof Error ? err.message : "生成失败，请重试";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    startStream("/api/wellness/card", { refresh: true });
-  }, [startStream]);
+    loadCard();
+  }, [loadCard]);
 
   return (
     <div className="min-h-screen p-6 pb-24 max-w-lg mx-auto">
@@ -37,7 +103,7 @@ export default function WellnessPage() {
         <p className="text-gray-400 text-sm mt-1">感知身体的信号</p>
       </div>
 
-      {/* 节气信息区 */}
+      {/* 节气信息区（唯一展示位置） */}
       {solarTerm && (
         <div className="mb-6 px-4 py-3 rounded-xl bg-white/5 border border-white/5">
           <div className="flex items-baseline gap-2">
@@ -60,7 +126,7 @@ export default function WellnessPage() {
           <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-6 text-center">
             <p className="text-red-400 text-sm mb-3">{error}</p>
             <button
-              onClick={() => startStream("/api/wellness/card", { refresh: true })}
+              onClick={() => loadCard(true)}
               className="text-zhiji-gold text-sm hover:underline"
             >
               重新生成
@@ -68,10 +134,8 @@ export default function WellnessPage() {
           </div>
         ) : (
           <WellnessCard
-            text={text}
+            text={cardText}
             loading={loading}
-            solarTermName={solarTerm?.name || ""}
-            solarTermDay={solarTerm?.dayIndex || 1}
           />
         )}
       </div>

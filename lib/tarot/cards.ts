@@ -1,6 +1,35 @@
 import { TarotCard } from "@/types/tarot";
 
 /**
+ * 获取塔罗牌图片路径
+ * 大阿尔卡那: /cards/0.jpg ~ 21.jpg（韦特经典牌面）
+ * 小阿尔卡那: /cards/{suit}-{number}.jpg（同套韦特牌面）
+ */
+export function getCardImagePath(card: TarotCard): string {
+  if (card.arcana === "major") {
+    return `/cards/${card.id}.jpg`;
+  }
+  // 小阿尔卡那: /cards/wands-01.jpg, cups-14.jpg 等
+  return `/cards/${card.suit}-${String(card.number).padStart(2, "0")}.jpg`;
+}
+
+/** 花色图标映射 */
+export const SUIT_ICONS: Record<string, string> = {
+  wands: "🔥",
+  cups: "💧",
+  swords: "💨",
+  pentacles: "🌍",
+};
+
+/** 花色中文名映射 */
+export const SUIT_NAMES: Record<string, string> = {
+  wands: "权杖",
+  cups: "圣杯",
+  swords: "宝剑",
+  pentacles: "星币",
+};
+
+/**
  * 韦特塔罗牌完整78张牌数据
  */
 export const TAROT_CARDS: TarotCard[] = [

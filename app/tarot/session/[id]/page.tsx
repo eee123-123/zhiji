@@ -10,7 +10,7 @@ import { TAROT_CARDS } from "@/lib/tarot/cards";
 import { TarotCard, DrawnCard, TarotRole } from "@/types/tarot";
 import { Button } from "@/components/ui/button";
 
-type SessionState = "choosing" | "revealing" | "reading" | "done";
+type SessionState = "choosing" | "revealing" | "revealed" | "reading" | "done";
 
 /** 获取大阿尔卡那22张牌并随机打乱顺序 */
 function shuffleMajorArcana(): TarotCard[] {
@@ -56,8 +56,13 @@ export default function TarotSessionPage() {
     }, 600);
   }, [candidates]);
 
-  // 翻牌完成后开始 AI 解读
+  // 翻牌完成后进入等待用户确认状态
   const handleFlipComplete = useCallback(() => {
+    setState("revealed");
+  }, []);
+
+  // 用户点击"开始解读"后才调用 AI
+  const handleStartReading = useCallback(() => {
     if (!drawnCard) return;
     setState("reading");
     startStream("/api/tarot/interpret", {
@@ -109,7 +114,7 @@ export default function TarotSessionPage() {
       )}
 
       {/* 翻牌动画 */}
-      {(state === "revealing" || state === "reading" || state === "done") && drawnCard && (
+      {(state === "revealing" || state === "revealed" || state === "reading" || state === "done") && drawnCard && (
         <div className="mb-8 animate-fadeIn">
           <CardDisplay
             drawnCard={drawnCard}
@@ -121,7 +126,7 @@ export default function TarotSessionPage() {
       )}
 
       {/* 牌名展示 */}
-      {drawnCard && state !== "choosing" && (
+      {drawnCard && state !== "choosing" && state !== "revealing" && (
         <div className="mb-6 text-center animate-fadeIn">
           <p className="text-zhiji-gold font-medium text-lg">
             {drawnCard.card.name}
@@ -132,10 +137,22 @@ export default function TarotSessionPage() {
         </div>
       )}
 
+      {/* 翻牌完成后显示"开始解读"按钮 */}
+      {state === "revealed" && (
+        <div className="mb-6 animate-fadeIn">
+          <Button
+            onClick={handleStartReading}
+            className="bg-zhiji-gold hover:bg-zhiji-gold-light text-zhiji-dark font-bold px-8 py-3 rounded-full shadow-lg shadow-zhiji-gold/20 cursor-pointer"
+          >
+            ✦ 开始解读
+          </Button>
+        </div>
+      )}
+
       {/* 解读区域 */}
       {(state === "reading" || state === "done") && (
         <div className="w-full max-w-lg animate-fadeIn">
-          <StreamReading text={text} loading={loading} error={error} />
+          <StreamReading text={text} loading={loading} error={error} roleName={roleNameMap[role]} />
         </div>
       )}
 

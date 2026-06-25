@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { DrawnCard } from "@/types/tarot";
+import { getCardImagePath, SUIT_ICONS, SUIT_NAMES } from "@/lib/tarot/cards";
 
 interface CardFlipProps {
   drawnCard: DrawnCard;
@@ -24,7 +27,7 @@ export function CardFlip({
   return (
     <div className={`perspective-1000 ${sizeClasses[size]}`}>
       <div
-        className={`relative w-full h-full transition-transform duration-[600ms] transform-style-3d ${
+        className={`relative w-full h-full transition-transform duration-[600ms] ease-out transform-style-3d ${
           flipped ? "rotate-y-180" : ""
         }`}
         onTransitionEnd={() => {
@@ -73,39 +76,38 @@ function CardBack() {
 
 function CardFront({ drawnCard }: { drawnCard: DrawnCard }) {
   const { card, isReversed } = drawnCard;
+  const [imgError, setImgError] = useState(false);
+  const imagePath = getCardImagePath(card);
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-zhiji-dark to-zhiji-purple/80 border-2 border-zhiji-gold/60 rounded-xl flex flex-col items-center justify-center p-4 relative">
-      {/* 牌号 */}
-      <div className="absolute top-3 left-3 text-zhiji-gold/60 text-sm font-mono">
-        {card.arcana === "major" ? String(card.id).padStart(2, "0") : ""}
-      </div>
-      {/* 正逆位标记 */}
-      <div
-        className={`absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full ${
-          isReversed
-            ? "bg-purple-900/60 text-purple-300"
-            : "bg-zhiji-gold/20 text-zhiji-gold"
-        }`}
-      >
-        {isReversed ? "逆位" : "正位"}
-      </div>
-      {/* 牌名 */}
-      <div className={`text-center ${isReversed ? "rotate-180" : ""}`}>
-        <div className="text-2xl font-bold text-zhiji-gold mb-2">
-          {card.name}
-        </div>
-        <div className="text-sm text-gray-400">{card.nameEn}</div>
-      </div>
-      {/* 花色标记（小阿尔卡那） */}
-      {card.suit && (
-        <div className="absolute bottom-4 text-zhiji-gold/50 text-sm">
-          {card.suit === "wands" && "🔥 权杖"}
-          {card.suit === "cups" && "💧 圣杯"}
-          {card.suit === "swords" && "💨 宝剑"}
-          {card.suit === "pentacles" && "🌍 星币"}
-        </div>
+    <div className="w-full h-full bg-gradient-to-b from-zhiji-dark to-zhiji-purple/80 border-2 border-zhiji-gold/60 rounded-xl flex flex-col items-center justify-center relative overflow-hidden">
+      {/* 尝试加载图片 */}
+      {!imgError ? (
+        <>
+          <div className="absolute inset-0">
+            <Image
+              src={imagePath}
+              alt={card.name}
+              fill
+              className="object-cover"
+              onError={() => setImgError(true)}
+              sizes="(max-width: 768px) 176px, 224px"
+            />
+          </div>
+        </>
+      ) : (
+        /* 图片加载失败时的 CSS fallback */
+        <>
+          {/* 牌名 */}
+          <div className={`text-center p-4 ${isReversed ? "rotate-180" : ""}`}>
+            <div className="text-2xl font-bold text-zhiji-gold mb-2">
+              {card.name}
+            </div>
+            <div className="text-sm text-gray-400">{card.nameEn}</div>
+          </div>
+        </>
       )}
+      {/* 移除正逆位标记，下方已有文字展示 */}
     </div>
   );
 }

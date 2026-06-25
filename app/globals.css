@@ -145,14 +145,17 @@
 
   .transform-style-3d {
     transform-style: preserve-3d;
+    will-change: transform;
   }
 
   .backface-hidden {
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   .rotate-y-180 {
-    transform: rotateY(180deg);
+    transform: rotateY(180deg) translateZ(0);
   }
 }
 

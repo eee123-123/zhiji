@@ -4,9 +4,10 @@ interface StreamReadingProps {
   text: string;
   loading: boolean;
   error: string | null;
+  roleName?: string;
 }
 
-export function StreamReading({ text, loading, error }: StreamReadingProps) {
+export function StreamReading({ text, loading, error, roleName = "月见" }: StreamReadingProps) {
   const sections = parseSections(text);
 
   return (
@@ -29,7 +30,7 @@ export function StreamReading({ text, loading, error }: StreamReadingProps) {
       {loading && (
         <div className="flex items-center gap-2 text-zhiji-gold/60">
           <span className="animate-pulse">✦</span>
-          <span className="text-sm">月见正在解读...</span>
+          <span className="text-sm">{roleName}正在解读...</span>
         </div>
       )}
 

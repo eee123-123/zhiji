@@ -5,8 +5,6 @@ import { useMemo } from "react";
 interface WellnessCardProps {
   text: string;
   loading: boolean;
-  solarTermName: string;
-  solarTermDay: number;
 }
 
 interface Section {
@@ -47,22 +45,12 @@ function parseSections(text: string): Section[] {
 export function WellnessCard({
   text,
   loading,
-  solarTermName,
-  solarTermDay,
 }: WellnessCardProps) {
   const sections = useMemo(() => parseSections(text), [text]);
   const hasStructuredContent = sections.length > 0;
 
   return (
     <div className="border border-white/10 bg-gradient-to-b from-white/5 to-transparent rounded-2xl p-6">
-      {/* 卡片顶部：节气信息 */}
-      <div className="flex items-baseline gap-2 mb-4">
-        <span className="text-zhiji-gold text-2xl font-bold">
-          {solarTermName}
-        </span>
-        <span className="text-gray-400 text-sm">第{solarTermDay}天</span>
-      </div>
-
       {/* 内容区域 */}
       {loading && !text && (
         <div className="flex items-center gap-2 text-gray-400">

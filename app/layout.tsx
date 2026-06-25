@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/app-shell";
+import { Prefetcher } from "@/components/layout/prefetcher";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="antialiased">
         <AppShell>{children}</AppShell>
+        <Prefetcher />
       </body>
     </html>
   );

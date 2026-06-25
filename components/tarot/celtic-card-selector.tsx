@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TarotCard, DrawnCard } from "@/types/tarot";
 
 interface CelticCardSelectorProps {
-  candidates: TarotCard[]; // 22张大阿尔卡那
+  candidates: TarotCard[]; // 22张或全部78张
   onComplete: (cards: DrawnCard[]) => void;
 }
 
@@ -73,8 +73,22 @@ export function CelticCardSelector({
     return found >= 0 ? found + 1 : null;
   };
 
-  // 蜂巢错位布局：6-5-6-5 = 22张
-  const rows = [6, 5, 6, 5];
+  // 动态计算布局行结构
+  const isCompact = candidates.length > 22;
+  const rows = useMemo(() => {
+    const total = candidates.length;
+    if (total <= 22) return [6, 5, 6, 5];
+    const r: number[] = [];
+    let remaining = total;
+    let isLong = true;
+    while (remaining > 0) {
+      const rowSize = isLong ? Math.min(10, remaining) : Math.min(9, remaining);
+      r.push(rowSize);
+      remaining -= rowSize;
+      isLong = !isLong;
+    }
+    return r;
+  }, [candidates.length]);
   let cardIndex = 0;
 
   return (
@@ -119,9 +133,9 @@ export function CelticCardSelector({
       </div>
 
       {/* 牌面网格 */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-1.5 md:gap-2">
         {rows.map((count, rowIdx) => (
-          <div key={rowIdx} className="flex justify-center gap-2">
+          <div key={rowIdx} className="flex justify-center gap-1 md:gap-1.5">
             {Array.from({ length: count }).map((_item, _colIdx) => {
               const idx = cardIndex++;
               const order = getSelectedOrder(idx);
@@ -146,7 +160,7 @@ export function CelticCardSelector({
                       "cubic-bezier(0.34, 1.56, 0.64, 1)",
                   }}
                 >
-                  <CelticCardBack selected={isSelected} />
+                  <CelticCardBack selected={isSelected} compact={isCompact} />
                   {/* 已选序号标记 */}
                   {order !== null && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -180,11 +194,14 @@ export function CelticCardSelector({
 }
 
 /** 凯尔特选牌用的牌背 */
-function CelticCardBack({ selected = false }: { selected?: boolean }) {
+function CelticCardBack({ selected = false, compact = false }: { selected?: boolean; compact?: boolean }) {
+  const sizeClass = compact
+    ? "w-[34px] h-[51px] md:w-[44px] md:h-[66px]"
+    : "w-[52px] h-[78px] md:w-[60px] md:h-[90px]";
   return (
     <div
       className={`
-        w-[52px] h-[78px] md:w-[60px] md:h-[90px]
+        ${sizeClass}
         rounded-lg relative overflow-hidden
         ${
           selected
@@ -204,31 +221,35 @@ function CelticCardBack({ selected = false }: { selected?: boolean }) {
       />
 
       {/* 内层装饰边框 */}
-      <div className="absolute inset-[3px] md:inset-[4px] rounded border border-[#d4a84b]/15" />
+      <div className={`absolute ${compact ? "inset-[2px]" : "inset-[3px] md:inset-[4px]"} rounded border border-[#d4a84b]/15`} />
 
       {/* 中心图案 */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative">
-          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full border border-[#d4a84b]/20" />
-          <div className="absolute inset-0 flex items-center justify-center text-[#d4a84b]/50 text-sm md:text-base">
+          <div className={`${compact ? "w-3.5 h-3.5 md:w-4 md:h-4" : "w-5 h-5 md:w-6 md:h-6"} rounded-full border border-[#d4a84b]/20`} />
+          <div className={`absolute inset-0 flex items-center justify-center text-[#d4a84b]/50 ${compact ? "text-[10px] md:text-xs" : "text-sm md:text-base"}`}>
             ✦
           </div>
         </div>
       </div>
 
       {/* 四角装饰 */}
-      <span className="absolute top-1 left-1 text-[#d4a84b]/25 text-[7px]">
-        ✧
-      </span>
-      <span className="absolute top-1 right-1 text-[#d4a84b]/25 text-[7px]">
-        ✧
-      </span>
-      <span className="absolute bottom-1 left-1 text-[#d4a84b]/25 text-[7px]">
-        ✧
-      </span>
-      <span className="absolute bottom-1 right-1 text-[#d4a84b]/25 text-[7px]">
-        ✧
-      </span>
+      {!compact && (
+        <>
+          <span className="absolute top-1 left-1 text-[#d4a84b]/25 text-[7px]">
+            ✧
+          </span>
+          <span className="absolute top-1 right-1 text-[#d4a84b]/25 text-[7px]">
+            ✧
+          </span>
+          <span className="absolute bottom-1 left-1 text-[#d4a84b]/25 text-[7px]">
+            ✧
+          </span>
+          <span className="absolute bottom-1 right-1 text-[#d4a84b]/25 text-[7px]">
+            ✧
+          </span>
+        </>
+      )}
 
       {/* 光泽 */}
       <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/[0.02] to-white/[0.05] rounded-lg" />

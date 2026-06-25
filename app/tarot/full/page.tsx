@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { RoleSelector } from "@/components/tarot/role-selector";
 import { TopicSelector } from "@/components/tarot/topic-selector";
 import { SpreadSelector } from "@/components/tarot/spread-selector";
@@ -21,7 +21,8 @@ import {
   TOPIC_LABELS,
 } from "@/types/tarot";
 
-const STEP_LABELS = ["选择解读者", "选择主题", "描述困惑", "选择牌阵", "问牌"];
+const STEP_LABELS_FULL = ["选择解读者", "选择主题", "描述困惑", "选择牌阵", "问牌"];
+const STEP_LABELS_SKIP = ["选择主题", "描述困惑", "选择牌阵", "问牌"];
 
 const DESCRIPTION_PLACEHOLDERS: Record<Exclude<TarotTopic, "general">, string> =
   {
@@ -34,11 +35,20 @@ const DESCRIPTION_PLACEHOLDERS: Record<Exclude<TarotTopic, "general">, string> =
 
 export default function TarotFullPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { text, loading, error, startStream, narrativeHint } = useStream();
 
+  // 检查 URL 是否携带了 role 参数（从问牌页跳转过来）
+  const urlRole = searchParams.get("role") as TarotRole | null;
+  const hasUrlRole = !!urlRole;
+  const initialStep = hasUrlRole ? 1 : 0;
+
   // 多步骤状态
-  const [step, setStep] = useState(0);
-  const [role, setRole] = useState<TarotRole>("yuejian");
+  const [step, setStep] = useState(initialStep);
+  const [role, setRole] = useState<TarotRole>(urlRole || "yuejian");
+
+  // 当前使用的步骤标签（跳过 Step 0 时不显示"选择解读者"）
+  const STEP_LABELS = hasUrlRole ? STEP_LABELS_SKIP : STEP_LABELS_FULL;
   const [topic, setTopic] = useState<TarotTopic | null>(null);
   const [description, setDescription] = useState("");
   const [spreadType, setSpreadType] = useState<SpreadType | null>(null);
@@ -49,11 +59,8 @@ export default function TarotFullPage() {
   const [showReading, setShowReading] = useState(false);
   const [readingStarted, setReadingStarted] = useState(false);
 
-  // 大阿尔卡那22张牌
-  const majorCards = useMemo(
-    () => TAROT_CARDS.filter((c) => c.arcana === "major"),
-    []
-  );
+  // 完整问牌使用全部78张牌
+  const allCards = useMemo(() => TAROT_CARDS, []);
 
   // 步骤前进
   const nextStep = () => {
@@ -67,6 +74,11 @@ export default function TarotFullPage() {
 
   // 步骤后退
   const prevStep = () => {
+    if (step === 1 && hasUrlRole) {
+      // 角色来自 URL，Step 0 被跳过，返回问牌首页
+      router.push("/tarot");
+      return;
+    }
     if (step === 3 && topic === "general") {
       // 从牌阵选择返回时，跳回主题选择
       setStep(1);
@@ -75,63 +87,59 @@ export default function TarotFullPage() {
     }
   };
 
-  // 选牌处理
+  // 选牌处理（完整问牌使用全部78张）
   const handleCardSelect = (index: number) => {
-    const card = majorCards[index];
+    const card = allCards[index];
     const isReversed = Math.random() < 0.5;
     const drawn: DrawnCard = { card, isReversed };
     setDrawnCard(drawn);
   };
 
-  // 翻牌完成后开始解读
+  // 翻牌完成后进入等待状态，用户点击“开始解读”才调用 AI
   const handleFlipComplete = () => {
-    if (!drawnCard || readingStarted) return;
-    setReadingStarted(true);
-    setShowReading(true);
-
-    startStream("/api/tarot/interpret", {
-      cards: [drawnCard],
-      role,
-      spreadType,
-      topic: topic ? TOPIC_LABELS[topic] : undefined,
-      description: description || undefined,
-    });
+    // 仅标记翻牌完成，不自动解读
   };
 
-  // 三牌阵选完后开始解读
+  // 用户主动点击"开始解读"
+  const handleStartReading = () => {
+    if (readingStarted) return;
+    if (drawnCard) {
+      setReadingStarted(true);
+      setShowReading(true);
+      startStream("/api/tarot/interpret", {
+        cards: [drawnCard],
+        role,
+        spreadType,
+        topic: topic ? TOPIC_LABELS[topic] : undefined,
+        description: description || undefined,
+      });
+    } else if (drawnCards.length > 0) {
+      setReadingStarted(true);
+      setShowReading(true);
+      startStream("/api/tarot/interpret", {
+        cards: drawnCards,
+        role,
+        spreadType,
+        topic: topic ? TOPIC_LABELS[topic] : undefined,
+        description: description || undefined,
+      });
+    }
+  };
+
+  // 三牌阵选完后等待用户确认
   const handleThreeCardComplete = (cards: DrawnCard[]) => {
     setDrawnCards(cards);
-    setReadingStarted(true);
-    setShowReading(true);
-
-    startStream("/api/tarot/interpret", {
-      cards,
-      role,
-      spreadType,
-      topic: topic ? TOPIC_LABELS[topic] : undefined,
-      description: description || undefined,
-    });
   };
 
-  // 凯尔特十字选完10张牌后开始解读
+  // 凯尔特十字选完10张牌后等待用户确认
   const handleCelticComplete = (cards: DrawnCard[]) => {
     setDrawnCards(cards);
-    setReadingStarted(true);
-    setShowReading(true);
-
-    startStream("/api/tarot/interpret", {
-      cards,
-      role,
-      spreadType,
-      topic: topic ? TOPIC_LABELS[topic] : undefined,
-      description: description || undefined,
-    });
   };
 
   // 重新开始
   const handleRestart = () => {
-    setStep(0);
-    setRole("yuejian");
+    setStep(initialStep);
+    if (!hasUrlRole) setRole("yuejian");
     setTopic(null);
     setDescription("");
     setSpreadType(null);
@@ -142,14 +150,16 @@ export default function TarotFullPage() {
   };
 
   // 计算有效步骤索引（用于进度显示）
-  const totalSteps = topic === "general" ? 4 : 5;
+  const baseTotalSteps = topic === "general" ? 4 : 5;
+  const totalSteps = hasUrlRole ? baseTotalSteps - 1 : baseTotalSteps;
   const currentProgress = (() => {
+    const offset = hasUrlRole ? 1 : 0;
     if (topic === "general") {
-      if (step <= 1) return step;
-      if (step === 3) return 2;
-      return 3;
+      if (step <= 1) return step - offset;
+      if (step === 3) return 2 - offset;
+      return 3 - offset;
     }
-    return step;
+    return step - offset;
   })();
 
   return (
@@ -168,7 +178,7 @@ export default function TarotFullPage() {
             />
           ))}
           <span className="ml-3 text-gray-500 text-xs">
-            {STEP_LABELS[step]}
+            {hasUrlRole ? STEP_LABELS[step - 1] : STEP_LABELS[step]}
           </span>
         </div>
       ) : null}
@@ -297,11 +307,34 @@ export default function TarotFullPage() {
           {/* 凯尔特十字牌阵 */}
           {spreadType === "celtic" ? (
             <>
-              {!showReading && (
+              {!showReading && drawnCards.length === 0 && (
                 <CelticCardSelector
-                  candidates={majorCards}
+                  candidates={allCards}
                   onComplete={handleCelticComplete}
                 />
+              )}
+
+              {/* 凯尔特选完后：紧凑展示已选牌 + 解读按钮 */}
+              {!showReading && drawnCards.length > 0 && (
+                <div className="flex flex-col items-center py-6 animate-fadeIn">
+                  <h3 className="text-zhiji-gold text-lg font-bold mb-4">✦ 十张牌已选定 ✦</h3>
+                  <div className="flex flex-wrap justify-center gap-2 mb-6 max-w-md">
+                    {drawnCards.map((drawn, i) => (
+                      <span
+                        key={i}
+                        className="text-xs text-zhiji-gold/80 bg-zhiji-gold/10 border border-zhiji-gold/20 px-2.5 py-1 rounded-full"
+                      >
+                        {i + 1}. {drawn.card.name}{drawn.isReversed ? " ↓" : " ↑"}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleStartReading}
+                    className="bg-zhiji-gold hover:bg-zhiji-gold-light text-zhiji-dark font-bold px-8 py-3 rounded-full shadow-lg shadow-zhiji-gold/20 cursor-pointer transition-all duration-200 hover:scale-105"
+                  >
+                    ✦ 开始解读（10张牌）
+                  </button>
+                </div>
               )}
 
               {showReading && (
@@ -350,9 +383,21 @@ export default function TarotFullPage() {
               {/* 三牌阵流程 */}
               {!showReading && (
                 <ThreeCardSpread
-                  candidates={majorCards}
+                  candidates={allCards}
                   onComplete={handleThreeCardComplete}
                 />
+              )}
+
+              {/* 三牌阵选完后的开始解读按钮 */}
+              {!showReading && drawnCards.length > 0 && (
+                <div className="flex flex-col items-center py-6 animate-fadeIn">
+                  <button
+                    onClick={handleStartReading}
+                    className="bg-zhiji-gold hover:bg-zhiji-gold-light text-zhiji-dark font-bold px-8 py-3 rounded-full shadow-lg shadow-zhiji-gold/20 cursor-pointer transition-all duration-200 hover:scale-105"
+                  >
+                    ✦ 开始解读（{drawnCards.length}张牌）
+                  </button>
+                </div>
               )}
 
               {/* 流式解读 */}
@@ -409,7 +454,7 @@ export default function TarotFullPage() {
                     不要思考，让手指自然被吸引
                   </p>
                   <CardSpread
-                    cards={majorCards}
+                    cards={allCards}
                     onSelect={handleCardSelect}
                   />
                 </div>
@@ -424,6 +469,29 @@ export default function TarotFullPage() {
                     autoFlipDelay={1000}
                     onFlipComplete={handleFlipComplete}
                   />
+                  {/* 牌名 + 开始解读按钮 */}
+                  <div className="mt-6 text-center">
+                    <p className="text-zhiji-gold font-medium text-lg">{drawnCard.card.name}</p>
+                    <p className="text-gray-500 text-sm mb-4">{drawnCard.card.nameEn} · {drawnCard.isReversed ? "逆位" : "正位"}</p>
+                    <button
+                      onClick={handleStartReading}
+                      className="bg-zhiji-gold hover:bg-zhiji-gold-light text-zhiji-dark font-bold px-8 py-3 rounded-full shadow-lg shadow-zhiji-gold/20 cursor-pointer transition-all duration-200 hover:scale-105"
+                    >
+                      ✦ 开始解读
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 三牌阵/凯尔特完成后的开始解读按钮 */}
+              {drawnCards.length > 0 && !showReading && (
+                <div className="flex flex-col items-center py-6 animate-fadeIn">
+                  <button
+                    onClick={handleStartReading}
+                    className="bg-zhiji-gold hover:bg-zhiji-gold-light text-zhiji-dark font-bold px-8 py-3 rounded-full shadow-lg shadow-zhiji-gold/20 cursor-pointer transition-all duration-200 hover:scale-105"
+                  >
+                    ✦ 开始解读（{drawnCards.length}张牌）
+                  </button>
                 </div>
               )}
 
